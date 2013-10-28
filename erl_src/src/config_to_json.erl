@@ -9,8 +9,14 @@ main(Args) ->
     case getopt:parse(option_spec_list(), Args) of
         {ok, {Options, _}} ->
             ConfigFile = proplists:get_value(config_file, Options),
-            {ok, [Terms]} = file:consult(ConfigFile),
-            Config = eth:convert(Terms),
+						case file:consult(ConfigFile) of
+						    {ok, [Terms]} ->
+										% riak app.config format
+								 		Config = eth:convert(Terms);
+							  {ok, Terms} ->
+								    % basho_bench .config format
+								 		Config = eth:convert([Terms])
+						end,
             Json = jsx:encode(Config),
             Output = case proplists:get_value(prettify, Options) of
                 true -> jsx:prettify(Json);
